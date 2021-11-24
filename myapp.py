@@ -1,6 +1,5 @@
-#from flask import Flask, render_template, Response
-from fastapi import FastAPI, Form, Request
-from fastapi.responses import PlainTextResponse, HTMLResponse, FileResponse, StreamingResponse
+from fastapi import FastAPI, Form, Request, File, UploadFile, Response, status
+from fastapi.responses import PlainTextResponse, HTMLResponse, FileResponse, StreamingResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
@@ -11,6 +10,7 @@ import numpy as np
 import face_recognition
 import os
 from datetime import datetime
+import shutil
 
 #app = Flask(__name__)
 
@@ -109,6 +109,16 @@ def video_feed():
 @app.get('/', response_class=HTMLResponse)
 async def get_webpage(request: Request):
     return templates.TemplateResponse("index.html", {"request": request, "message": "Contact Us"})
+
+
+@app.post('/users', response_class=HTMLResponse)
+async def create_user(request: Request,first_name: str = Form(...), last_name: str = Form(...), image: UploadFile = File(...)):
+    with open(os.path.join("./Training_images", f'{first_name}_{last_name}.jpg'), 'wb') as f:
+        shutil.copyfileobj(image.file, f)
+    #return {"first_name": first_name, "last_name": last_name, "content_type": image.content_type}
+    #return RedirectResponse(url='/')
+    return templates.TemplateResponse("index.html", {"request": request, "message": "Contact Us"})
+
 
 
 if __name__ == '__main__':
